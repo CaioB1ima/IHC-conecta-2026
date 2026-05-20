@@ -1,0 +1,2232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The UX Game — A Bola do Destino</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Icon Pack: Tabler Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
+  <style>
+    :root {
+      --font-sans: 'Plus Jakarta Sans', sans-serif;
+      --font-title: 'Space Grotesk', sans-serif;
+      
+      --color-bg-space: #070514;
+      --color-purple-primary: #8b5cf6;
+      --color-purple-glow: rgba(139, 92, 246, 0.4);
+      --color-indigo-primary: #6366f1;
+      --color-indigo-glow: rgba(99, 102, 241, 0.4);
+      
+      --color-correct: #10b981;
+      --color-correct-glow: rgba(16, 185, 129, 0.4);
+      --color-wrong: #ef4444;
+      --color-wrong-glow: rgba(239, 68, 68, 0.4);
+      --color-amber: #f59e0b;
+      --color-amber-glow: rgba(245, 158, 11, 0.3);
+      
+      --color-text-primary: #f8fafc;
+      --color-text-secondary: #cbd5e1;
+      --color-text-muted: #94a3b8;
+      
+      --glass-bg: rgba(15, 12, 38, 0.65);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      
+      --border-radius-lg: 24px;
+      --border-radius-md: 16px;
+      --border-radius-sm: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--color-bg-space);
+      color: var(--color-text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* Background Canvas Particles */
+    #particles-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Sound and Interactive HUD Topbar */
+    .hud-controls {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 100;
+      display: flex;
+      gap: 12px;
+    }
+
+    .hud-btn {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      color: var(--color-text-primary);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: var(--glass-glow);
+    }
+
+    .hud-btn:hover {
+      background: var(--color-purple-primary);
+      border-color: var(--color-purple-primary);
+      transform: scale(1.1);
+      box-shadow: 0 0 15px var(--color-purple-glow);
+    }
+
+    .hud-btn i {
+      font-size: 20px;
+    }
+
+    /* Main Container Grid */
+    .game-wrapper {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 1100px;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 40px;
+      align-items: center;
+    }
+
+    @media (min-width: 900px) {
+      .game-wrapper {
+        grid-template-columns: 450px 1fr;
+      }
+    }
+
+    /* ==========================================
+       CRYSTAL BALL - A BOLA DO DESTINO
+       ========================================== */
+    .oracle-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* Pedestal / Magical Ring base */
+    .pedestal-ring {
+      width: 280px;
+      height: 20px;
+      background: radial-gradient(ellipse, var(--color-purple-glow) 0%, transparent 70%);
+      border-radius: 50%;
+      position: absolute;
+      bottom: -10px;
+      z-index: 1;
+      animation: basePulse 4s infinite ease-in-out;
+      border: 1px dashed rgba(139, 92, 246, 0.2);
+    }
+
+    @keyframes basePulse {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.15); opacity: 0.9; }
+    }
+
+    /* The glowing ball container */
+    .crystal-ball-container {
+      width: 300px;
+      height: 300px;
+      position: relative;
+      cursor: pointer;
+      z-index: 2;
+      animation: floatBall 6s infinite ease-in-out;
+    }
+
+    @keyframes floatBall {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-15px); }
+    }
+
+    /* Shaking animation when decision made */
+    .crystal-ball-container.shake {
+      animation: shakeBall 0.5s ease-in-out 3;
+    }
+
+    @keyframes shakeBall {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      10% { transform: translate(-4px, -2px) rotate(-1deg); }
+      30% { transform: translate(5px, 2px) rotate(1.5deg); }
+      50% { transform: translate(-5px, 3px) rotate(-2deg); }
+      70% { transform: translate(4px, -3px) rotate(1deg); }
+      90% { transform: translate(-2px, 1px) rotate(-0.5deg); }
+    }
+
+    .crystal-ball {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.15) 0%, rgba(99, 102, 241, 0.1) 40%, rgba(15, 12, 38, 0.85) 80%);
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 
+        0 0 35px var(--color-purple-glow),
+        inset 0 0 45px rgba(99, 102, 241, 0.5),
+        inset -10px -10px 40px rgba(0, 0, 0, 0.8),
+        inset 10px 10px 30px rgba(255, 255, 255, 0.15);
+      transition: all 0.5s ease;
+    }
+
+    /* Inner magical vortex swirling */
+    .ball-vortex {
+      content: '';
+      position: absolute;
+      top: 15%;
+      left: 15%;
+      width: 70%;
+      height: 70%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.6) 0%, rgba(99, 102, 241, 0.2) 50%, transparent 100%);
+      filter: blur(10px);
+      animation: swirl 12s linear infinite;
+      mix-blend-mode: screen;
+      pointer-events: none;
+      transition: all 0.5s ease;
+    }
+
+    @keyframes swirl {
+      0% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(180deg) scale(1.1); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+
+    /* Core symbols appearing in the crystal ball */
+    .ball-core {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .ball-core i {
+      font-size: 52px;
+      color: rgba(255, 255, 255, 0.95);
+      text-shadow: 
+        0 0 10px var(--color-purple-primary),
+        0 0 20px var(--color-indigo-primary),
+        0 0 35px var(--color-purple-primary);
+      animation: pulseCore 3s infinite ease-in-out;
+      transition: all 0.5s ease;
+    }
+
+    @keyframes pulseCore {
+      0%, 100% { transform: scale(1); opacity: 0.8; filter: drop-shadow(0 0 10px var(--color-purple-primary)); }
+      50% { transform: scale(1.15); opacity: 1; filter: drop-shadow(0 0 25px var(--color-purple-primary)); }
+    }
+
+    /* Highlight glass reflections on the sphere */
+    .ball-glare {
+      position: absolute;
+      top: 8%;
+      left: 18%;
+      width: 45px;
+      height: 25px;
+      background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 80%);
+      border-radius: 50%;
+      transform: rotate(-30deg);
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    .ball-glare-secondary {
+      position: absolute;
+      bottom: 12%;
+      right: 18%;
+      width: 25px;
+      height: 12px;
+      background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 80%);
+      border-radius: 50%;
+      transform: rotate(35deg);
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    /* Ball state shifts */
+    .crystal-ball-container.correct .crystal-ball {
+      box-shadow: 
+        0 0 40px var(--color-correct-glow),
+        inset 0 0 50px var(--color-correct),
+        inset -10px -10px 40px rgba(0, 0, 0, 0.8);
+      border-color: rgba(16, 185, 129, 0.5);
+    }
+    .crystal-ball-container.correct .ball-vortex {
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.7) 0%, rgba(52, 211, 153, 0.25) 50%, transparent 100%);
+    }
+    .crystal-ball-container.correct .ball-core i {
+      text-shadow: 
+        0 0 10px var(--color-correct),
+        0 0 20px rgba(16, 185, 129, 0.8),
+        0 0 35px var(--color-correct);
+      color: #e6fcf5;
+    }
+
+    .crystal-ball-container.wrong .crystal-ball {
+      box-shadow: 
+        0 0 40px var(--color-wrong-glow),
+        inset 0 0 50px var(--color-wrong),
+        inset -10px -10px 40px rgba(0, 0, 0, 0.8);
+      border-color: rgba(239, 68, 68, 0.5);
+    }
+    .crystal-ball-container.wrong .ball-vortex {
+      background: radial-gradient(circle, rgba(239, 68, 68, 0.7) 0%, rgba(248, 113, 113, 0.25) 50%, transparent 100%);
+    }
+    .crystal-ball-container.wrong .ball-core i {
+      text-shadow: 
+        0 0 10px var(--color-wrong),
+        0 0 20px rgba(239, 68, 68, 0.8),
+        0 0 35px var(--color-wrong);
+      color: #fef2f2;
+    }
+
+    /* Subtitle beneath Oracle */
+    .oracle-info {
+      margin-top: 20px;
+      text-align: center;
+      font-family: var(--font-title);
+      font-size: 13px;
+      letter-spacing: 2px;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    /* ==========================================
+       GLASSMORPHIC CARDS SCREEN CONTROLLER
+       ========================================== */
+    .card-device {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--border-radius-lg);
+      padding: 0;
+      overflow: hidden;
+      box-shadow: var(--glass-glow);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      min-height: 520px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Card Topbar */
+    .screen-header {
+      background: linear-gradient(135deg, rgba(83, 74, 183, 0.8) 0%, rgba(99, 102, 241, 0.4) 100%);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .header-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-title {
+      font-family: var(--font-title);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      letter-spacing: 0.5px;
+    }
+
+    .header-subtitle {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-top: 2px;
+    }
+
+    .header-icon {
+      font-size: 22px;
+      color: var(--color-text-primary);
+      opacity: 0.9;
+    }
+
+    /* Card Body */
+    .screen-body {
+      padding: 24px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .screen {
+      display: none;
+      animation: fadeInScreen 0.4s ease forwards;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes fadeInScreen {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* General Typography inside screens */
+    .screen-headline {
+      font-family: var(--font-title);
+      font-size: 20px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+
+    .screen-desc {
+      font-size: 14px;
+      color: var(--color-text-secondary);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    /* Nav bar on top of the card device (miniature tabs) */
+    .nav-breadcrumbs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .nav-tab {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--glass-border);
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      border-radius: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .nav-tab:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-tab.active {
+      background: var(--color-purple-primary);
+      border-color: var(--color-purple-primary);
+      color: #fff;
+      box-shadow: 0 0 10px var(--color-purple-glow);
+    }
+
+    /* Content block widgets */
+    .widget-block {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--border-radius-md);
+      padding: 16px;
+      margin-bottom: 16px;
+      transition: all 0.25s ease;
+    }
+
+    .widget-block:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .widget-lbl {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--color-text-muted);
+      margin-bottom: 6px;
+    }
+
+    .widget-val {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+      line-height: 1.5;
+    }
+
+    /* Badges */
+    .tag-badge {
+      display: inline-block;
+      font-size: 10px;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 1px;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+
+    .badge-purple { background: rgba(139, 92, 246, 0.2); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.3); }
+    .badge-amber { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-green { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-red { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+    /* Interactive Buttons */
+    .magic-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px 20px;
+      border-radius: var(--border-radius-md);
+      font-family: var(--font-title);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: linear-gradient(135deg, var(--color-purple-primary) 0%, var(--color-indigo-primary) 100%);
+      color: #fff;
+      box-shadow: 0 4px 15px var(--color-purple-glow);
+    }
+
+    .magic-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px var(--color-purple-glow);
+      filter: brightness(1.1);
+    }
+
+    .magic-btn:active {
+      transform: translateY(1px);
+    }
+
+    .magic-btn.btn-sec {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
+      box-shadow: none;
+    }
+
+    .magic-btn.btn-sec:hover {
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 15px rgba(255, 255, 255, 0.05);
+    }
+
+    /* Option Choice Buttons */
+    .option-btn {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      padding: 14px 18px;
+      border-radius: var(--border-radius-md);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--color-text-primary);
+      text-align: left;
+      cursor: pointer;
+      margin-bottom: 12px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .option-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(139, 92, 246, 0.4);
+      transform: translateX(4px);
+    }
+
+    .option-btn.selected {
+      background: rgba(139, 92, 246, 0.15);
+      border-color: var(--color-purple-primary);
+      box-shadow: 0 0 15px rgba(139, 92, 246, 0.25);
+    }
+
+    .option-title {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 3px;
+    }
+
+    .option-desc {
+      font-size: 11.5px;
+      color: var(--color-text-secondary);
+    }
+
+    /* Progress bar widget */
+    .stat-progress {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .stat-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, var(--color-purple-primary), var(--color-indigo-primary));
+      width: 0;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Grid layout for game statistics metrics */
+    .game-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .metric-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--border-radius-md);
+      padding: 12px 8px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .metric-card:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .metric-val {
+      font-family: var(--font-title);
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .metric-lbl {
+      font-size: 10px;
+      color: var(--color-text-muted);
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Annotation text block */
+    .annotation-box {
+      font-size: 11px;
+      color: var(--color-text-muted);
+      font-style: italic;
+      border-left: 2px solid var(--color-purple-primary);
+      padding-left: 10px;
+      margin-top: 14px;
+      line-height: 1.5;
+    }
+
+    /* Feedback Box */
+    .feedback-box {
+      border-radius: var(--border-radius-md);
+      padding: 14px 16px;
+      margin-top: 16px;
+      border: 1px solid transparent;
+      animation: slideDown 0.3s ease forwards;
+    }
+
+    .feedback-box.correct-box {
+      background: rgba(16, 185, 129, 0.08);
+      border-color: rgba(16, 185, 129, 0.2);
+    }
+
+    .feedback-box.wrong-box {
+      background: rgba(239, 68, 68, 0.08);
+      border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .feedback-title {
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .feedback-box.correct-box .feedback-title { color: #34d399; }
+    .feedback-box.wrong-box .feedback-title { color: #f87171; }
+
+    .feedback-desc {
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--color-text-secondary);
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Footer Metadata */
+    .game-footer {
+      position: relative;
+      z-index: 2;
+      margin-top: 40px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--color-text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .game-footer a {
+      color: var(--color-purple-primary);
+      text-decoration: none;
+    }
+
+    /* Persona style in Screen 2 */
+    .persona-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--border-radius-md);
+      padding: 12px 16px;
+      margin-top: 10px;
+    }
+
+    .persona-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--color-purple-primary), var(--color-indigo-primary));
+      color: #fff;
+      font-family: var(--font-title);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      box-shadow: 0 0 10px var(--color-purple-glow);
+    }
+
+    .persona-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .persona-name {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .persona-desc {
+      font-size: 11.5px;
+      color: var(--color-text-secondary);
+    }
+
+    /* Interactive Competence Bar Grid inside Dashboard */
+    .comp-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 8px;
+    }
+
+    .comp-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .comp-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .comp-name {
+      font-weight: 500;
+    }
+
+    .comp-val {
+      font-weight: 600;
+      color: var(--color-purple-primary);
+    }
+
+    /* Custom layout modifications for single screen elements */
+    .btn-action-area {
+      margin-top: 16px;
+    }
+
+    .results-value-display {
+      font-size: 14px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Starry Background particle rendering -->
+  <canvas id="particles-canvas"></canvas>
+
+  <!-- Top bar configuration HUD -->
+  <div class="hud-controls">
+    <button class="hud-btn" id="audio-toggle" title="Ativar/Mudar Som" onclick="toggleMute()">
+      <i class="ti ti-volume" id="volume-icon"></i>
+    </button>
+    <button class="hud-btn" onclick="goTo('home')" title="Página Inicial">
+      <i class="ti ti-home"></i>
+    </button>
+    <button class="hud-btn" onclick="goTo('dashboard')" title="Ver Painel">
+      <i class="ti ti-chart-bar"></i>
+    </button>
+  </div>
+
+  <div class="game-wrapper">
+    
+    <!-- LEFT SIDE: THE ORACLE (A BOLA DO DESTINO) -->
+    <div class="oracle-section">
+      <div class="pedestal-ring"></div>
+      <div class="crystal-ball-container" id="oracle-ball" onclick="onOracleClick()">
+        <div class="crystal-ball">
+          <div class="ball-vortex" id="ball-vort"></div>
+          <div class="ball-core" id="ball-co"><i class="ti ti-activity" id="core-icon"></i></div>
+          <div class="ball-glare"></div>
+          <div class="ball-glare-secondary"></div>
+        </div>
+      </div>
+      <div class="oracle-info" id="oracle-subtitle">A Bola do Destino</div>
+    </div>
+
+    <!-- RIGHT SIDE: THE CONTENT VIEW CONTROLLER (GLASSMORPHIC BOX) -->
+    <div class="card-device">
+      
+      <!-- Device Top Header Bar -->
+      <div class="screen-header">
+        <div class="header-text">
+          <span class="header-title" id="header-text-title">The UX Game</span>
+          <span class="header-subtitle" id="header-text-sub">Formação em Mercado de UX</span>
+        </div>
+        <i class="ti ti-device-gamepad-2 header-icon" id="header-icon-gfx"></i>
+      </div>
+
+      <!-- Navigation breadcrumbs inside card -->
+      <div class="screen-body">
+        <div>
+          <div class="nav-breadcrumbs">
+            <button class="nav-tab active" id="tab-home" onclick="goTo('home')">① Início</button>
+            <button class="nav-tab" id="tab-scenario" onclick="goTo('scenario')">② Cenário</button>
+            <button class="nav-tab" id="tab-decision" onclick="goTo('decision')">③ Decisão</button>
+            <button class="nav-tab" id="tab-result" onclick="goTo('result')">④ Resultado</button>
+            <button class="nav-tab" id="tab-dashboard" onclick="goTo('dashboard')">⑤ Painel</button>
+          </div>
+
+          <!-- ==========================================
+               SCREEN 1: HOME
+               ========================================== -->
+          <div id="screen-home" class="screen active">
+            <div class="widget-block" style="text-align: center; padding: 24px 16px;">
+              <i class="ti ti-user-star" style="font-size: 36px; color: var(--color-purple-primary); margin-bottom: 10px; display: inline-block;"></i>
+              <h2 class="screen-headline" style="font-size: 18px; margin-bottom: 6px;">Você é UX Designer júnior</h2>
+              <p class="screen-desc" style="margin-bottom: 0; font-size: 13px;">Gerencie testes de usabilidade, personas e orçamento em projetos reais. Tome decisões sob o conselho da Bola do Destino e veja as consequências.</p>
+            </div>
+            
+            <div class="game-metrics-grid">
+              <div class="metric-card">
+                <span class="metric-val" id="hud-scenarios">1 / 3</span>
+                <span class="metric-lbl">Cenário Ativo</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-val" id="hud-budget">R$ 5k</span>
+                <span class="metric-lbl">Orçamento</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-val" id="hud-xp">0 XP</span>
+                <span class="metric-lbl">Pontuação</span>
+              </div>
+            </div>
+
+            <button class="magic-btn" onclick="startCurrentMission()">
+              Iniciar Missão Ativa <i class="ti ti-arrow-right"></i>
+            </button>
+            
+            <div class="annotation-box">
+              Eixo GranDIHC-BR: Formação profissional em IHC e práticas reais de UX no mercado brasileiro.
+            </div>
+          </div>
+
+          <!-- ==========================================
+               SCREEN 2: SCENARIO BRIEFING (DYNAMIC)
+               ========================================== -->
+          <div id="screen-scenario" class="screen">
+            <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+              <span class="tag-badge badge-amber" id="scen-badge-status">Missão Ativa</span>
+              <span class="tag-badge badge-purple" id="scen-badge-client">SUS App</span>
+            </div>
+            
+            <h2 class="screen-headline" id="scen-title">Cenário 1: Abandono no Cadastro</h2>
+            <div class="stat-progress" style="margin-bottom: 16px;"><div class="stat-fill" id="scen-progress-fill" style="width: 33%"></div></div>
+            
+            <div class="widget-block">
+              <span class="widget-lbl">Situação e Desafio</span>
+              <p class="widget-val" id="scen-situation" style="font-size: 13.5px; font-weight: normal; line-height: 1.6;"></p>
+            </div>
+
+            <div class="persona-card">
+              <div class="persona-avatar" id="scen-persona-initials">MA</div>
+              <div class="persona-info">
+                <span class="persona-name" id="scen-persona-name">Maria, 58 anos (Persona)</span>
+                <span class="persona-desc" id="scen-persona-desc">Baixa digital...</span>
+              </div>
+            </div>
+            
+            <div class="annotation-box" id="scen-heuristics"></div>
+
+            <div class="btn-action-area">
+              <button class="magic-btn" onclick="goTo('decision')">
+                Analisar e decidir <i class="ti ti-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- ==========================================
+               SCREEN 3: DECISION ROOM (DYNAMIC)
+               ========================================== -->
+          <div id="screen-decision" class="screen">
+            <h2 class="screen-headline">Sua decisão</h2>
+            <div class="stat-progress" style="margin-bottom: 16px;"><div class="stat-fill" id="dec-progress-fill" style="width: 66%"></div></div>
+
+            <div class="widget-block" style="padding: 12px 16px; margin-bottom: 14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="widget-lbl" style="margin-bottom: 0;">Orçamento do Cenário</span>
+                <span class="tag-badge badge-amber" style="font-size: 9px;" id="dec-budget-tag">Crítico</span>
+              </div>
+              <span class="widget-val" id="dec-budget-val" style="font-size: 20px; font-weight: 700; color: #fff;">R$ 1.500</span>
+            </div>
+
+            <p class="screen-desc" style="font-size: 12.5px; margin-bottom: 12px;">Selecione a abordagem que a Bola do Destino deve avaliar:</p>
+
+            <div class="decision-options" id="dec-options-list">
+              <!-- Dynamically populated options -->
+            </div>
+
+            <!-- Dynamic Feedback Box placeholder -->
+            <div id="decision-feedback-container"></div>
+
+            <div class="btn-action-area" id="action-decision-confirm" style="display: none;">
+              <button class="magic-btn" onclick="consultOracle()">
+                Consultar o Oráculo <i class="ti ti-sparkles"></i>
+              </button>
+            </div>
+            
+            <div class="btn-action-area" id="action-decision-next" style="display: none;">
+              <button class="magic-btn" onclick="goTo('result')">
+                Ver resultado da profecia <i class="ti ti-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- ==========================================
+               SCREEN 4: RESULTS (DYNAMIC)
+               ========================================== -->
+          <div id="screen-result" class="screen">
+            <h2 class="screen-headline">Resultado do cenário</h2>
+            <div class="stat-progress" style="margin-bottom: 16px;"><div class="stat-fill" id="res-progress-fill" style="width: 100%"></div></div>
+
+            <div class="widget-block" id="result-status-block" style="border-left: 4px solid var(--color-correct); background: rgba(16, 185, 129, 0.05);">
+              <span class="widget-lbl" id="result-badge-text" style="color: var(--color-correct);">✓ Decisão Tomada</span>
+              <p class="widget-val results-value-display" id="result-main-text"></p>
+            </div>
+
+            <div class="game-metrics-grid">
+              <div class="metric-card">
+                <span class="metric-val" id="res-metric-impact" style="color: #34d399;">0%</span>
+                <span class="metric-lbl" id="res-metric-impact-lbl">Abandono</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-val" id="res-metric-xp" style="color: var(--color-amber);">+0 XP</span>
+                <span class="metric-lbl">XP ganho</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-val" id="res-metric-savings">R$ 0</span>
+                <span class="metric-lbl">Economia</span>
+              </div>
+            </div>
+
+            <div class="widget-block">
+              <span class="widget-lbl">Aprendizado IHC</span>
+              <p class="widget-val" id="res-learning" style="font-size: 12.5px; font-weight: normal; line-height: 1.5; color: var(--color-text-secondary);"></p>
+            </div>
+
+            <div class="annotation-box" id="res-alignment"></div>
+
+            <div class="btn-action-area">
+              <button class="magic-btn" id="result-continue-btn" onclick="goTo('dashboard')">
+                Ver meu progresso <i class="ti ti-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- ==========================================
+               SCREEN 5: DASHBOARD
+               ========================================== -->
+          <div id="screen-dashboard" class="screen">
+            <h2 class="screen-headline">Dashboard do Jogador</h2>
+            <p class="screen-desc" style="font-size: 13px; margin-bottom: 16px;">Progresso acumulado e competências em UX desenvolvidas:</p>
+
+            <div class="game-metrics-grid" style="margin-bottom: 16px;">
+              <div class="metric-card">
+                <span class="metric-val" id="dash-scenarios">1 / 3</span>
+                <span class="metric-lbl">Cenários Resolvidos</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-val" id="dash-xp" style="color: var(--color-amber);">0 XP</span>
+                <span class="metric-lbl">XP Total</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-val" id="dash-rank" style="color: var(--color-purple-primary);">C-</span>
+                <span class="metric-lbl">Rank Geral</span>
+              </div>
+            </div>
+
+            <!-- Quest progression map -->
+            <div class="widget-block" style="margin-bottom: 16px;">
+              <span class="widget-lbl">Mapa de Desafios (Oráculo)</span>
+              <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 8px;" id="dash-quest-map">
+                <!-- Dynamically populated challenges -->
+              </div>
+            </div>
+
+            <!-- Competence bars -->
+            <div class="widget-block" style="margin-bottom: 16px;">
+              <span class="widget-lbl">Competências desenvolvidas</span>
+              <div class="comp-list">
+                <div class="comp-item">
+                  <div class="comp-header">
+                    <span class="comp-name">Pesquisa com Usuários</span>
+                    <span class="comp-val" id="bar-val-research">0%</span>
+                  </div>
+                  <div class="stat-progress"><div class="stat-fill" id="bar-fill-research" style="width: 0%"></div></div>
+                </div>
+                <div class="comp-item">
+                  <div class="comp-header">
+                    <span class="comp-name">Gestão de Orçamento</span>
+                    <span class="comp-val" id="bar-val-budget">0%</span>
+                  </div>
+                  <div class="stat-progress"><div class="stat-fill" id="bar-fill-budget" style="width: 0%"></div></div>
+                </div>
+                <div class="comp-item">
+                  <div class="comp-header">
+                    <span class="comp-name">Diretrizes IHC Brasileiras</span>
+                    <span class="comp-val" id="bar-val-heurs">0%</span>
+                  </div>
+                  <div class="stat-progress"><div class="stat-fill" id="bar-fill-heurs" style="width: 0%"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="btn-action-area">
+              <button class="magic-btn btn-sec" onclick="resetGame()">
+                Reiniciar Jornada Completa <i class="ti ti-rotate"></i>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    
+  </div>
+
+  <!-- Footer Credits -->
+  <div class="game-footer">
+    <span>Protótipo desenvolvido com Vibe Coding · IHC Lab Conecta CEUB 2026</span>
+    <span>Sob supervisão da Profa. Kadidja Valéria · Eixo Q2: Mercado e Formação UX</span>
+  </div>
+
+  <!-- Sound Generator Engine (Self-contained Web Audio API synth) -->
+  <script>
+    class WebAudioSynth {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      createOscillator(type, freq, duration, gainStart) {
+        if (this.muted || !this.ctx) return;
+        
+        let osc = this.ctx.createOscillator();
+        let gainNode = this.ctx.createGain();
+        
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        
+        gainNode.gain.setValueAtTime(gainStart, this.ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+        
+        osc.connect(gainNode);
+        gainNode.connect(this.ctx.destination);
+        
+        osc.start();
+        osc.stop(this.ctx.currentTime + duration);
+        return { osc, gainNode };
+      }
+
+      playHover() {
+        this.init();
+        if (this.muted || !this.ctx) return;
+        
+        let time = this.ctx.currentTime;
+        let osc = this.ctx.createOscillator();
+        let gainNode = this.ctx.createGain();
+        
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(250, time);
+        osc.frequency.exponentialRampToValueAtTime(600, time + 0.12);
+        
+        gainNode.gain.setValueAtTime(0.04, time);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, time + 0.12);
+        
+        osc.connect(gainNode);
+        gainNode.connect(this.ctx.destination);
+        
+        osc.start();
+        osc.stop(time + 0.12);
+      }
+
+      playClick() {
+        this.init();
+        if (this.muted || !this.ctx) return;
+        
+        // Mystic high click chime
+        this.createOscillator('sine', 880, 0.15, 0.08);
+        setTimeout(() => this.createOscillator('sine', 1320, 0.25, 0.05), 40);
+      }
+
+      playRumble(duration) {
+        this.init();
+        if (this.muted || !this.ctx) return;
+
+        let time = this.ctx.currentTime;
+        let osc = this.ctx.createOscillator();
+        let filter = this.ctx.createBiquadFilter();
+        let gainNode = this.ctx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(65, time);
+        osc.frequency.linearRampToValueAtTime(55, time + duration);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(150, time);
+
+        gainNode.gain.setValueAtTime(0.2, time);
+        gainNode.gain.linearRampToValueAtTime(0.2, time + duration - 0.2);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+
+        // Modulator for vibration effect
+        let mod = this.ctx.createOscillator();
+        let modGain = this.ctx.createGain();
+        mod.type = 'sine';
+        mod.frequency.setValueAtTime(8, time); // 8 Hz vibrato
+        modGain.gain.setValueAtTime(15, time);
+
+        mod.connect(modGain);
+        modGain.connect(osc.frequency);
+        
+        osc.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(this.ctx.destination);
+
+        mod.start();
+        osc.start();
+        
+        mod.stop(time + duration);
+        osc.stop(time + duration);
+      }
+
+      playSuccess() {
+        this.init();
+        if (this.muted || !this.ctx) return;
+
+        let time = this.ctx.currentTime;
+        let notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        
+        notes.forEach((freq, index) => {
+          setTimeout(() => {
+            let osc = this.ctx.createOscillator();
+            let gainNode = this.ctx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+            
+            gainNode.gain.setValueAtTime(0.08, this.ctx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.6);
+            
+            osc.connect(gainNode);
+            gainNode.connect(this.ctx.destination);
+            
+            osc.start();
+            osc.stop(this.ctx.currentTime + 0.65);
+          }, index * 80);
+        });
+      }
+
+      playFailure() {
+        this.init();
+        if (this.muted || !this.ctx) return;
+
+        let time = this.ctx.currentTime;
+        let notes = [311.13, 293.66, 220.00]; // Eb4, D4, A3 (detuned, spooky)
+        
+        notes.forEach((freq, index) => {
+          setTimeout(() => {
+            let osc = this.ctx.createOscillator();
+            let gainNode = this.ctx.createGain();
+            
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+            
+            gainNode.gain.setValueAtTime(0.06, this.ctx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.0001, this.ctx.currentTime + 0.7);
+            
+            // Subtle lowpass to make it warmer/sadder
+            let filter = this.ctx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(400, this.ctx.currentTime);
+
+            osc.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(this.ctx.destination);
+            
+            osc.start();
+            osc.stop(this.ctx.currentTime + 0.75);
+          }, index * 140);
+        });
+      }
+    }
+
+    const sound = new WebAudioSynth();
+
+    function toggleMute() {
+      sound.init();
+      sound.muted = !sound.muted;
+      const icon = document.getElementById('volume-icon');
+      if (sound.muted) {
+        icon.className = 'ti ti-volume-3'; // Muted icon
+        icon.style.color = '#ef4444';
+      } else {
+        icon.className = 'ti ti-volume'; // Unmuted
+        icon.style.color = '';
+        sound.playClick();
+      }
+    }
+  </script>
+
+  <!-- Canvas Particles Logic -->
+  <script>
+    const canvas = document.getElementById('particles-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    let particles = [];
+    const particleCount = 65;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Particle {
+      constructor() {
+        this.reset();
+        this.y = Math.random() * canvas.height; // spread initially
+      }
+
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = canvas.height + 20;
+        this.size = Math.random() * 2.5 + 0.5;
+        this.speedY = -(Math.random() * 0.4 + 0.1);
+        this.speedX = (Math.random() * 0.2 - 0.1);
+        this.alpha = Math.random() * 0.5 + 0.2;
+        this.color = Math.random() > 0.5 ? '139, 92, 246' : '99, 102, 241'; // Purple or Indigo
+      }
+
+      update() {
+        this.y += this.speedY;
+        this.x += this.speedX;
+        
+        // fade out near top
+        if (this.y < 50) {
+          this.alpha -= 0.01;
+        }
+        
+        if (this.y < 0 || this.alpha <= 0) {
+          this.reset();
+        }
+      }
+
+      draw() {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${this.color}, ${this.alpha})`;
+        ctx.shadowBlur = this.size * 2;
+        ctx.shadowColor = `rgb(${this.color})`;
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    // Trigger sparkles explosion when decision evaluated
+    function triggerExplosion(type) {
+      const colorVal = type === 'correct' ? '16, 185, 129' : '239, 68, 68';
+      const ballRect = document.getElementById('oracle-ball').getBoundingClientRect();
+      const originX = ballRect.left + ballRect.width / 2;
+      const originY = ballRect.top + ballRect.height / 2;
+
+      for (let i = 0; i < 40; i++) {
+        particles.push({
+          x: originX,
+          y: originY,
+          size: Math.random() * 3 + 1,
+          speedY: (Math.random() * 4 - 2),
+          speedX: (Math.random() * 4 - 2),
+          alpha: 1,
+          color: colorVal,
+          isExplosion: true,
+          update() {
+            this.x += this.speedX;
+            this.y += this.speedY;
+            this.alpha -= 0.025;
+          },
+          draw() {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${this.color}, ${this.alpha})`;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = `rgb(${this.color})`;
+            ctx.fill();
+            ctx.restore();
+          }
+        });
+      }
+    }
+
+    // Initialize particles
+    for (let i = 0; i < particleCount; i++) {
+      particles.push(new Particle());
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw background space dust effect
+      ctx.fillStyle = 'rgba(7, 5, 20, 0.05)';
+      
+      for (let i = 0; i < particles.length; i++) {
+        let p = particles[i];
+        p.update();
+        p.draw();
+        
+        // Remove completed explosion particles
+        if (p.isExplosion && p.alpha <= 0) {
+          particles.splice(i, 1);
+          i--;
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+
+  <!-- Core Game Scripts -->
+  <script>
+    // ==========================================
+    // GAME SCENARIOS DATABASE
+    // ==========================================
+    const scenarios = [
+      {
+        id: 1,
+        title: "Cadastro de Saúde Pública (SUS)",
+        client: "App de saúde pública (SUS)",
+        tag: "SUS App",
+        situation: "O app de agendamento do SUS tem taxa de abandono de 67% na tela de cadastro. O cliente quer 'uma interface mais bonita'. Você tem R$ 1.500 de orçamento e 2 semanas.",
+        heuristics: "Heurística de Nielsen aplicada: correspondência com o mundo real — linguagem técnica vs. linguagem da Maria.",
+        persona: {
+          initials: "MA",
+          name: "Maria, 58 anos (Persona)",
+          desc: "Baixa literacia digital · usa celular pré-pago antigo"
+        },
+        budget: 1500,
+        options: [
+          { id: 'a', title: "A — Contratar UI Designer", desc: "Redesign visual completo das telas com layouts modernos. Custo: R$ 1.400.", type: 'wrong-visual' },
+          { id: 'b', title: "B — Pesquisa com 5 usuários reais", desc: "Realizar teste de usabilidade contextual com público SUS. Custo: R$ 600.", type: 'correct' },
+          { id: 'c', title: "C — Análise heurística interna", desc: "Revisão rápida de interface pelo próprio time interno. Custo: R$ 0.", type: 'wrong-heuristic' }
+        ],
+        feedbacks: {
+          'correct': {
+            title: "✓ Excelente Abordagem!",
+            desc: "Testes com usuários reais revelam problemas invisíveis. Você descobriu que Maria não preenchia o CPF porque a máscara do campo não aceitava pontos/traços e gerava erro de validação obscuro. Correção trivial de alto impacto."
+          },
+          'wrong-visual': {
+            title: "✗ Decisão Frágil (Visual)",
+            desc: "Contratar o designer de UI consumiu R$1.400. O layout ficou esteticamente belo, mas Maria continua abandonando o cadastro pois o fluxo de preenchimento complexo e a linguagem de validação excludente continuam inalterados."
+          },
+          'wrong-heuristic': {
+            title: "✗ Decisão Limitada (Heurísticas)",
+            desc: "A análise heurística interna custou R$0, mas o time de desenvolvimento é enviesado e tem alta literacia. Problemas específicos enfrentados pela persona Maria não foram identificados por falta de contato com a realidade."
+          }
+        },
+        results: {
+          'correct': {
+            text: "Sua decisão de focar em Pesquisa com Usuários Reais reduziu o atrito no cadastro de forma permanente. O time implementou validação tolerante, beneficiando milhares de usuários no SUS.",
+            impact: "-42% abandono",
+            impactLabel: "Abandono",
+            xp: 80,
+            cost: 600,
+            compResearch: 80,
+            compBudget: 85,
+            compHeurs: 40
+          },
+          'wrong-visual': {
+            text: "O redesenho visual falhou em mitigar a taxa de abandono do SUS, pois a lógica de preenchimento continuou inacessível. O projeto ficou sem verba para novas pesquisas e correções.",
+            impact: "-2% abandono",
+            impactLabel: "Abandono",
+            xp: 15,
+            cost: 1400,
+            compResearch: 10,
+            compBudget: 30,
+            compHeurs: 45
+          },
+          'wrong-heuristic': {
+            text: "A análise heurística interna gerou um relatório técnico complexo de melhorias visuais que o time de dev não conseguiu priorizar por falta de clareza empírica dos dados.",
+            impact: "0% abandono",
+            impactLabel: "Abandono",
+            xp: 20,
+            cost: 0,
+            compResearch: 15,
+            compBudget: 90,
+            compHeurs: 65
+          }
+        },
+        alignment: "Alinhamento com GranDIHC-BR: impactos socioculturais e diversidade do usuário brasileiro.",
+        learning: "Pesquisa com usuários reais > redesign estético. No contexto de IHC brasileiro, literacia digital baixa exige testes com personas reais, não heurísticas baseadas em cenários externos."
+      },
+      {
+        id: 2,
+        title: "Acessibilidade Visual (eMAG/WCAG)",
+        client: "Plataforma de educação pública (MEC)",
+        tag: "MEC Portal",
+        situation: "O portal de matrículas escolares tem 40% dos usuários com deficiência visual reclamando que o leitor de tela não consegue navegar pelo formulário de inscrição. O cliente quer 'colocar um botão de acessibilidade' na página. Você tem R$ 2.000 de orçamento e 3 semanas.",
+        heuristics: "Diretrizes WCAG aplicadas: Operável e Robusto (Critérios 1.3.1 Informações e Relações, e 4.1.2 Nome, Função e Valor).",
+        persona: {
+          initials: "JS",
+          name: "João, 34 anos (Persona)",
+          desc: "Professor de escola pública · deficiência visual · usa NVDA + Chrome"
+        },
+        budget: 2000,
+        options: [
+          { id: 'a', title: "A — Botão 'modo acessível' (cores)", desc: "Insere atalho rápido para contraste visual cromático na interface. Custo: R$ 200.", type: 'wrong-visual' },
+          { id: 'b', title: "B — Auditoria NVDA + ajustes semânticos", desc: "Mapeamento completo e correção de ordem de leitura e labels nos inputs. Custo: R$ 800.", type: 'correct' },
+          { id: 'c', title: "C — Agência externa para redesign total", desc: "Redesenhar toda a interface do portal com foco em acessibilidade. Custo: R$ 2.500 (excede orçamento).", type: 'wrong-heuristic' }
+        ],
+        feedbacks: {
+          'correct': {
+            title: "✓ Decisão Precisa!",
+            desc: "A auditoria com NVDA e o ajuste semântico das tags HTML e labels resolveram o problema na raiz. O leitor de tela agora lê com clareza todo o fluxo de matrícula sem demandar um redesign custoso e demorado."
+          },
+          'wrong-visual': {
+            title: "✗ Falha de Solução (Cosmética)",
+            desc: "Adicionar contraste visual não resolve o problema de leitura de tela. João continua incapacitado de submeter a inscrição, pois os campos HTML ainda não têm rótulos acessíveis e o leitor pula as caixas de texto."
+          },
+          'wrong-heuristic': {
+            title: "✗ Falha Financeira (Estouro de Limite)",
+            desc: "O redesign completo foi cotado em R$2.500, o que inviabilizou o andamento do projeto por estourar os R$2.000 de orçamento total disponíveis, paralisando a entrega das inscrições."
+          }
+        },
+        results: {
+          'correct': {
+            text: "Ao ajustar o código de marcação semântica e tags ARIA, o MEC restabeleceu a navegação fluida pelo teclado e NVDA. As reclamações despencaram.",
+            impact: "-92% queixas",
+            impactLabel: "Reclamações",
+            xp: 90,
+            cost: 800,
+            compResearch: 85,
+            compBudget: 80,
+            compHeurs: 75
+          },
+          'wrong-visual': {
+            text: "A implementação do botão estético de contraste falhou em ajudar usuários cegos, e as reclamações continuaram gerando atritos jurídicos graves para o MEC.",
+            impact: "-5% queixas",
+            impactLabel: "Reclamações",
+            xp: 15,
+            cost: 200,
+            compResearch: 40,
+            compBudget: 75,
+            compHeurs: 35
+          },
+          'wrong-heuristic': {
+            text: "O estouro de orçamento paralisou a contratação, deixando a plataforma inacessível para o período de matrículas escolares daquele ano letivo.",
+            impact: "Sem mudança",
+            impactLabel: "Reclamações",
+            xp: 5,
+            cost: 2500,
+            compResearch: 20,
+            compBudget: 10,
+            compHeurs: 50
+          }
+        },
+        alignment: "Alinhamento com GranDIHC-BR: inclusão digital e cumprimento das leis de acessibilidade nacionais.",
+        learning: "Acessibilidade digital não é cosmética — é estrutura de código. Um campo <input> sem <label> é invisível para leitores de tela, independente de quantos botões coloridos existam na tela."
+      },
+      {
+        id: 3,
+        title: "Decolonialidade e Diversidade Cultural",
+        client: "App de telemedicina para comunidades quilombolas no Maranhão",
+        tag: "Saúde Local",
+        situation: "O app tem apenas 12% de adesão nas comunidades-alvo. Pesquisa inicial aponta que a interface usa ícones e metáforas urbanas (relógio digital, calendário de agenda corporativa) que não fazem sentido cultural. Você tem R$ 3.000 de orçamento e 4 semanas.",
+        heuristics: "Princípio IHC aplicado: Usabilidade Cultural e Interfaces Situadas (Design Participativo e Empatia Decolonial).",
+        persona: {
+          initials: "DC",
+          name: "Dona Conceição, 61 anos (Persona)",
+          desc: "Liderança comunitária quilombola · nunca usou smartphone antes do projeto · referência de confiança"
+        },
+        budget: 3000,
+        options: [
+          { id: 'a', title: "A — Português simplificado no app", desc: "Ajustar o vocabulário das mensagens de texto para palavras e termos mais fáceis. Custo: R$ 300.", type: 'wrong-visual' },
+          { id: 'b', title: "B — Designer urbano de SP para redesenho", desc: "Contratar profissional focado em minimalismo e tendências visuais globais. Custo: R$ 2.800.", type: 'wrong-heuristic' },
+          { id: 'c', title: "C — Co-design com a comunidade (Workshop)", desc: "Trabalho prático presencial com Dona Conceição e 4 lideranças para desenhar ícones locais. Custo: R$ 1.200.", type: 'correct' }
+        ],
+        feedbacks: {
+          'correct': {
+            title: "✓ Decisão Incrível (Decolonial)!",
+            desc: "O workshop com Dona Conceição e lideranças permitiu co-criar ícones representativos (como uma folha medicinal local para consultas preventivas e ciclos lunares para agendamentos). A aceitação foi unânime."
+          },
+          'wrong-visual': {
+            title: "✗ Falha de Metáfora (Texto)",
+            desc: "A tradução de texto não resolveu o abismo semiótico dos ícones. As metáforas urbanas corporativas continuaram distantes da realidade da comunidade quilombola, mantendo a baixa adesão."
+          },
+          'wrong-heuristic': {
+            title: "✗ Erro de Perspectiva (Aculturação)",
+            desc: "O designer externo apenas reforçou padrões estéticos globais corporativos. A comunidade considerou a interface ainda mais intimidadora e fria, afastando-se do uso da telemedicina."
+          }
+        },
+        results: {
+          'correct': {
+            text: "O design participativo validou a telemedicina como ferramenta aliada da saúde comunitária. A adesão disparou e Dona Conceição tornou-se a maior promotora do app na região.",
+            impact: "+73% adesão",
+            impactLabel: "Adesão",
+            xp: 100,
+            cost: 1200,
+            compResearch: 95,
+            compBudget: 90,
+            compHeurs: 80
+          },
+          'wrong-visual': {
+            text: "Mesmo com textos simplificados, a barreira cultural de ícones abstratos e fluxos corporativos manteve a telemedicina sem uso prático pela população local.",
+            impact: "+2% adesão",
+            impactLabel: "Adesão",
+            xp: 10,
+            cost: 300,
+            compResearch: 40,
+            compBudget: 85,
+            compHeurs: 30
+          },
+          'wrong-heuristic': {
+            text: "A nova interface minimalista e 'moderna' foi rotulada como complexa demais. A comunidade preferiu continuar sem utilizar o suporte médico remoto.",
+            impact: "+5% adesão",
+            impactLabel: "Adesão",
+            xp: 20,
+            cost: 2800,
+            compResearch: 50,
+            compBudget: 15,
+            compHeurs: 55
+          }
+        },
+        alignment: "Alinhamento com GranDIHC-BR: diversidade sociocultural, soberania e respeito à população quilombola e indígena.",
+        learning: "Design decolonial não é simplificar — é ouvir. Metáforas de interface são culturalmente situadas. Um ícone de 'calendário corporativo' carrega uma visão de tempo que não existe em todas as culturas brasileiras. Co-design com a comunidade é o único método que resolve isso."
+      }
+    ];
+
+    // ==========================================
+    // GAME STATE & PROGRESSION MECHANICS
+    // ==========================================
+    const gameState = {
+      scenariosCount: 3,
+      currentScenarioIdx: 1,      // Scenario currently being viewed/played
+      maxUnlockedScenario: 1,     // Highest scenario unlocked so far
+      budget: 5000,
+      xp: 0,
+      rank: 'C-',
+      scenariosData: [
+        { selectedDecision: null, decisionDone: false, evaluated: false, correctSolved: false },
+        { selectedDecision: null, decisionDone: false, evaluated: false, correctSolved: false },
+        { selectedDecision: null, decisionDone: false, evaluated: false, correctSolved: false }
+      ],
+      competencies: {
+        research: 0,
+        budget: 0,
+        heuristics: 0
+      }
+    };
+
+    // UI elements references
+    const ballContainer = document.getElementById('oracle-ball');
+    const ballCoreIcon = document.getElementById('core-icon');
+    const ballSubtitle = document.getElementById('oracle-subtitle');
+    const feedbackArea = document.getElementById('decision-feedback-container');
+    const actionConfirm = document.getElementById('action-decision-confirm');
+    const actionNext = document.getElementById('action-decision-next');
+
+    // UI sound hover wiring dynamically
+    function wireSoundHovers() {
+      document.querySelectorAll('.nav-tab, .magic-btn, .option-btn, .hud-btn').forEach(elem => {
+        // remove existing listener to avoid duplication
+        elem.removeEventListener('mouseenter', playHoverSound);
+        elem.addEventListener('mouseenter', playHoverSound);
+      });
+    }
+
+    function playHoverSound() {
+      sound.playHover();
+    }
+
+    // Oracle Click Easter Egg
+    function onOracleClick() {
+      sound.playClick();
+      ballContainer.classList.add('shake');
+      sound.playRumble(0.4);
+      setTimeout(() => {
+        ballContainer.classList.remove('shake');
+      }, 500);
+    }
+
+    // Screen Router
+    function goTo(screenId) {
+      sound.playClick();
+      
+      // Switch active screen tabs UI
+      document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+      const activeTab = document.getElementById('tab-' + screenId);
+      if (activeTab) activeTab.classList.add('active');
+
+      // Switch active screen containers
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-' + screenId).classList.add('active');
+
+      // Trigger custom screen setup
+      handleScreenEntrance(screenId);
+    }
+
+    // Trigger when mission is started from Home
+    function startCurrentMission() {
+      // Find first unsolved scenario or use the current active one
+      let targetScen = gameState.currentScenarioIdx;
+      // If completed active, try to find next unlocked
+      if (gameState.scenariosData[targetScen - 1].correctSolved && targetScen < gameState.maxUnlockedScenario) {
+        targetScen = gameState.maxUnlockedScenario;
+      }
+      gameState.currentScenarioIdx = targetScen;
+      goTo('scenario');
+    }
+
+    // Triggers when page is visualised
+    function handleScreenEntrance(screenId) {
+      const headerTitle = document.getElementById('header-text-title');
+      const headerSub = document.getElementById('header-text-sub');
+      const headerIcon = document.getElementById('header-icon-gfx');
+      const currentScen = scenarios[gameState.currentScenarioIdx - 1];
+
+      // Refresh global numbers from state
+      recalculateGlobalStats();
+
+      if (screenId === 'home') {
+        headerTitle.innerText = "The UX Game";
+        headerSub.innerText = "Formação em Mercado de UX";
+        headerIcon.className = "ti ti-device-gamepad-2 header-icon";
+        
+        // Reset Ball color states
+        updateBallVisualState('normal');
+        ballCoreIcon.className = "ti ti-activity";
+        ballSubtitle.innerText = "A Bola do Destino";
+        
+        // Update stats
+        document.getElementById('hud-scenarios').innerText = `${gameState.currentScenarioIdx} / ${gameState.scenariosCount}`;
+        document.getElementById('hud-budget').innerText = `R$ ${gameState.budget.toLocaleString('pt-BR')}`;
+        document.getElementById('hud-xp').innerText = `${gameState.xp} XP`;
+      } 
+      
+      else if (screenId === 'scenario') {
+        headerTitle.innerText = `Cenário ${gameState.currentScenarioIdx} de ${gameState.scenariosCount}`;
+        headerSub.innerText = `Cliente: ${currentScen.client}`;
+        headerIcon.className = "ti ti-notes";
+        
+        // Fill briefing content
+        document.getElementById('scen-badge-status').innerText = gameState.scenariosData[gameState.currentScenarioIdx - 1].correctSolved ? "Missão Concluída" : "Missão Ativa";
+        document.getElementById('scen-badge-status').className = gameState.scenariosData[gameState.currentScenarioIdx - 1].correctSolved ? "tag-badge badge-green" : "tag-badge badge-amber";
+        document.getElementById('scen-badge-client').innerText = currentScen.tag;
+        document.getElementById('scen-title').innerText = `Cenário ${gameState.currentScenarioIdx}: ${currentScen.title}`;
+        document.getElementById('scen-situation').innerHTML = currentScen.situation;
+        
+        // Persona
+        document.getElementById('scen-persona-initials').innerText = currentScen.persona.initials;
+        document.getElementById('scen-persona-name').innerText = currentScen.persona.name;
+        document.getElementById('scen-persona-desc').innerText = currentScen.persona.desc;
+        
+        // Annotation
+        document.getElementById('scen-heuristics').innerText = currentScen.heuristics;
+        
+        // Progress bar width
+        const progressWidths = [33, 66, 100];
+        document.getElementById('scen-progress-fill').style.width = `${progressWidths[gameState.currentScenarioIdx - 1]}%`;
+
+        // Ball focuses on question mark
+        updateBallVisualState('normal');
+        ballCoreIcon.className = "ti ti-help-hexagon";
+        ballSubtitle.innerText = "Briefing Aberto";
+      } 
+      
+      else if (screenId === 'decision') {
+        headerTitle.innerText = "Sua decisão";
+        headerSub.innerText = `Como alocar os recursos?`;
+        headerIcon.className = "ti ti-adjustments";
+        
+        // Progress bar width
+        const progressWidths = [33, 66, 100];
+        document.getElementById('dec-progress-fill').style.width = `${progressWidths[gameState.currentScenarioIdx - 1]}%`;
+
+        // Budget Widget
+        document.getElementById('dec-budget-val').innerText = `R$ ${currentScen.budget.toLocaleString('pt-BR')}`;
+        
+        // Generate Options
+        loadDecisionOptions();
+
+        // Adjust ball icon
+        ballCoreIcon.className = "ti ti-search";
+        ballSubtitle.innerText = "Aguardando Opção";
+
+        // Restore previous decisions UI if applicable
+        const currentData = gameState.scenariosData[gameState.currentScenarioIdx - 1];
+        
+        if (currentData.selectedDecision) {
+          // preselect option UI
+          const optIndex = currentScen.options.findIndex(o => o.type === currentData.selectedDecision);
+          if (optIndex !== -1) {
+            const btnId = `opt-${currentScen.options[optIndex].id}`;
+            const btn = document.getElementById(btnId);
+            if (btn) btn.classList.add('selected');
+          }
+
+          if (currentData.decisionDone) {
+            actionConfirm.style.display = 'none';
+            actionNext.style.display = 'block';
+            showImmediateFeedback(currentData.selectedDecision);
+          } else {
+            actionConfirm.style.display = 'block';
+            actionNext.style.display = 'none';
+            feedbackArea.innerHTML = '';
+          }
+        } else {
+          actionConfirm.style.display = 'none';
+          actionNext.style.display = 'none';
+          feedbackArea.innerHTML = '';
+        }
+      } 
+      
+      else if (screenId === 'result') {
+        headerTitle.innerText = "Consequências";
+        headerSub.innerText = "A Profecia se Cumpriu";
+        headerIcon.className = "ti ti-chart-dots";
+
+        // Progress bar width
+        const progressWidths = [33, 66, 100];
+        document.getElementById('res-progress-fill').style.width = `${progressWidths[gameState.currentScenarioIdx - 1]}%`;
+
+        setupResultScreen();
+      } 
+      
+      else if (screenId === 'dashboard') {
+        headerTitle.innerText = "Painel do Designer";
+        headerSub.innerText = "Progresso de Carreira";
+        headerIcon.className = "ti ti-trophy";
+        
+        ballCoreIcon.className = "ti ti-award";
+        ballSubtitle.innerText = "Visão Geral";
+
+        setupDashboardScreen();
+      }
+
+      wireSoundHovers();
+    }
+
+    // Set Ball Color Class
+    function updateBallVisualState(state) {
+      ballContainer.classList.remove('correct', 'wrong');
+      if (state === 'correct') {
+        ballContainer.classList.add('correct');
+      } else if (state === 'wrong') {
+        ballContainer.classList.add('wrong');
+      }
+    }
+
+    // Load dynamic options for active scenario
+    function loadDecisionOptions() {
+      const currentScen = scenarios[gameState.currentScenarioIdx - 1];
+      const list = document.getElementById('dec-options-list');
+      list.innerHTML = '';
+      
+      currentScen.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.id = `opt-${opt.id}`;
+        btn.onclick = () => selectOption(opt.type, `opt-${opt.id}`);
+        
+        btn.innerHTML = `
+          <span class="option-title">${opt.title}</span>
+          <span class="option-desc">${opt.desc}</span>
+        `;
+        list.appendChild(btn);
+      });
+    }
+
+    // Selects option on Decision Screen
+    function selectOption(type, buttonId) {
+      sound.playClick();
+      
+      // Save choice in temporary scenario slot
+      const currentData = gameState.scenariosData[gameState.currentScenarioIdx - 1];
+      currentData.selectedDecision = type;
+      currentData.decisionDone = false; // Reset evaluation state till oracle is asked
+
+      // Highlight selected button
+      document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
+      document.getElementById(buttonId).classList.add('selected');
+
+      // Setup Oracle subtitle
+      ballSubtitle.innerText = "Consultar Destino";
+      ballCoreIcon.className = "ti ti-click";
+      updateBallVisualState('normal');
+      
+      // Clean feedback area and show consultation button
+      feedbackArea.innerHTML = '';
+      actionConfirm.style.display = 'block';
+      actionNext.style.display = 'none';
+    }
+
+    // Show feedback immediately without re-animating (restoring screen state)
+    function showImmediateFeedback(type) {
+      const currentScen = scenarios[gameState.currentScenarioIdx - 1];
+      const fData = currentScen.feedbacks[type === 'correct' ? 'correct' : type];
+      
+      if (!fData) return;
+
+      if (type === 'correct') {
+        updateBallVisualState('correct');
+        ballCoreIcon.className = "ti ti-circle-check";
+        ballSubtitle.innerText = "Destino Favorável!";
+        feedbackArea.innerHTML = `
+          <div class="feedback-box correct-box">
+            <div class="feedback-title"><i class="ti ti-circle-check"></i> ${fData.title}</div>
+            <div class="feedback-desc">${fData.desc}</div>
+          </div>
+        `;
+      } else {
+        updateBallVisualState('wrong');
+        ballCoreIcon.className = "ti ti-circle-x";
+        ballSubtitle.innerText = "Alerta do Destino";
+        feedbackArea.innerHTML = `
+          <div class="feedback-box wrong-box">
+            <div class="feedback-title"><i class="ti ti-circle-x"></i> ${fData.title}</div>
+            <div class="feedback-desc">${fData.desc}</div>
+          </div>
+        `;
+      }
+    }
+
+    // Evaluates selected decision with crystal ball action
+    function consultOracle() {
+      const currentData = gameState.scenariosData[gameState.currentScenarioIdx - 1];
+      const currentScen = scenarios[gameState.currentScenarioIdx - 1];
+      
+      if (!currentData.selectedDecision) return;
+
+      // Start evaluation effect
+      ballContainer.className = "crystal-ball-container shake";
+      ballSubtitle.innerText = "Consultando...";
+      ballCoreIcon.className = "ti ti-rotate";
+      
+      // Play low rumbling sound
+      sound.playRumble(1.5);
+      
+      // Disable buttons temporarily
+      actionConfirm.style.disabled = true;
+
+      setTimeout(() => {
+        // Stop shaking
+        ballContainer.classList.remove('shake');
+        currentData.decisionDone = true;
+        currentData.evaluated = true;
+
+        const choice = currentData.selectedDecision;
+        const isCorrect = (choice === 'correct');
+        currentData.correctSolved = isCorrect;
+
+        // If correct, handle unlocking the next scenario level!
+        if (isCorrect) {
+          if (gameState.currentScenarioIdx === gameState.maxUnlockedScenario && gameState.maxUnlockedScenario < gameState.scenariosCount) {
+            gameState.maxUnlockedScenario += 1;
+          }
+        }
+
+        // Show immediate visual results
+        showImmediateFeedback(choice);
+        
+        // Play success/failure sounds and trigger explosion particles
+        if (isCorrect) {
+          sound.playSuccess();
+          triggerExplosion('correct');
+        } else {
+          sound.playFailure();
+          triggerExplosion('wrong');
+        }
+
+        // Show Next button
+        actionConfirm.style.display = 'none';
+        actionNext.style.display = 'block';
+        actionConfirm.style.disabled = false;
+
+        // Recalculate stats dynamically
+        recalculateGlobalStats();
+
+      }, 1500);
+    }
+
+    // Dynamically calculate budget, XP and Rank from state arrays
+    function recalculateGlobalStats() {
+      let accumXp = 0;
+      let costSum = 0;
+      
+      gameState.scenariosData.forEach((scenData, idx) => {
+        if (scenData.evaluated && scenData.selectedDecision) {
+          const choice = scenData.selectedDecision;
+          const scenConfig = scenarios[idx];
+          const choiceConfig = scenConfig.results[choice];
+          if (choiceConfig) {
+            accumXp += choiceConfig.xp;
+            costSum += choiceConfig.cost;
+          }
+        }
+      });
+
+      gameState.xp = accumXp;
+      gameState.budget = 5000 - costSum;
+
+      // Calculate Rank based on accumulated XP
+      if (gameState.xp >= 270) {
+        gameState.rank = "A+ (Lenda do UX)";
+      } else if (gameState.xp >= 170) {
+        gameState.rank = "A (UX Sênior)";
+      } else if (gameState.xp >= 80) {
+        gameState.rank = "B+ (UX Pleno)";
+      } else if (gameState.xp > 20) {
+        gameState.rank = "B- (UX Júnior)";
+      } else {
+        gameState.rank = "C- (Estagiário)";
+      }
+
+      // Recalculate global competencies (takes the best scores or progressive accumulations)
+      let rMax = 0, bMax = 0, hMax = 0;
+      gameState.scenariosData.forEach((scenData, idx) => {
+        if (scenData.evaluated && scenData.selectedDecision) {
+          const choiceConfig = scenarios[idx].results[scenData.selectedDecision];
+          if (choiceConfig) {
+            rMax = Math.max(rMax, choiceConfig.compResearch);
+            bMax = Math.max(bMax, choiceConfig.compBudget);
+            hMax = Math.max(hMax, choiceConfig.compHeurs);
+          }
+        }
+      });
+      gameState.competencies.research = rMax;
+      gameState.competencies.budget = bMax;
+      gameState.competencies.heuristics = hMax;
+    }
+
+    // Set up results screen metrics based on decision
+    function setupResultScreen() {
+      const block = document.getElementById('result-status-block');
+      const bText = document.getElementById('result-badge-text');
+      const mainText = document.getElementById('result-main-text');
+      
+      const mImpact = document.getElementById('res-metric-impact');
+      const mImpactLbl = document.getElementById('res-metric-impact-lbl');
+      const mXp = document.getElementById('res-metric-xp');
+      const mSavings = document.getElementById('res-metric-savings');
+      
+      const resLearning = document.getElementById('res-learning');
+      const resAlignment = document.getElementById('res-alignment');
+      
+      const continueBtn = document.getElementById('result-continue-btn');
+
+      const currentData = gameState.scenariosData[gameState.currentScenarioIdx - 1];
+      const currentScen = scenarios[gameState.currentScenarioIdx - 1];
+
+      if (!currentData.selectedDecision || !currentData.decisionDone) {
+        // No decision evaluated yet
+        updateBallVisualState('normal');
+        ballCoreIcon.className = "ti ti-alert-circle";
+        ballSubtitle.innerText = "Oráculo Vazio";
+
+        block.style.borderLeftColor = "var(--color-amber)";
+        block.style.background = "rgba(245, 158, 11, 0.05)";
+        bText.innerText = "Aguardando Tomada de Decisão";
+        bText.style.color = "var(--color-amber)";
+        mainText.innerText = "Por favor, vá para a tela '③ Decisão' e consulte a Bola do Destino antes de analisar os resultados.";
+
+        mImpact.innerText = "—";
+        mImpact.style.color = "";
+        mImpactLbl.innerText = "Abandono";
+        mXp.innerText = "—";
+        mSavings.innerText = "—";
+        resLearning.innerText = "Nenhuma decisão tomada ainda.";
+        resAlignment.innerText = "";
+        
+        continueBtn.innerHTML = `Ver meu progresso <i class="ti ti-arrow-right"></i>`;
+        continueBtn.onclick = () => goTo('dashboard');
+        return;
+      }
+
+      const choice = currentData.selectedDecision;
+      const resultsConfig = currentScen.results[choice];
+      const isCorrect = (choice === 'correct');
+
+      mImpactLbl.innerText = resultsConfig.impactLabel;
+
+      if (isCorrect) {
+        updateBallVisualState('correct');
+        ballCoreIcon.className = "ti ti-circle-check";
+        ballSubtitle.innerText = "Destino Brilhante";
+
+        block.style.borderLeftColor = "var(--color-correct)";
+        block.style.background = "rgba(16, 185, 129, 0.05)";
+        bText.innerText = "✓ Sucesso e Sabedoria";
+        bText.style.color = "var(--color-correct)";
+        mainText.innerText = resultsConfig.text;
+
+        mImpact.innerText = resultsConfig.impact;
+        mImpact.style.color = "#34d399";
+        mXp.innerText = `+${resultsConfig.xp} XP`;
+        
+        // savings is Scenario Budget - Choice Cost
+        const savings = currentScen.budget - resultsConfig.cost;
+        mSavings.innerText = `R$ ${savings.toLocaleString('pt-BR')}`;
+
+        // Continue Button goes to Dashboard
+        continueBtn.innerHTML = `Ver Painel & Progresso <i class="ti ti-arrow-right"></i>`;
+        continueBtn.onclick = () => goTo('dashboard');
+      } else {
+        updateBallVisualState('wrong');
+        ballCoreIcon.className = "ti ti-circle-x";
+        ballSubtitle.innerText = "Previsão Sombria";
+
+        block.style.borderLeftColor = "var(--color-wrong)";
+        block.style.background = "rgba(239, 68, 68, 0.05)";
+        bText.innerText = "✗ Consequências Ruins";
+        bText.style.color = "var(--color-wrong)";
+        mainText.innerText = resultsConfig.text;
+
+        mImpact.innerText = resultsConfig.impact;
+        mImpact.style.color = "#f87171";
+        mXp.innerText = `+${resultsConfig.xp} XP`;
+        
+        const savings = currentScen.budget - resultsConfig.cost;
+        mSavings.innerText = savings >= 0 ? `R$ ${savings.toLocaleString('pt-BR')}` : `- R$ ${Math.abs(savings).toLocaleString('pt-BR')}`;
+
+        // Continue Button allows retrying the decision
+        continueBtn.innerHTML = `Tentar Novamente <i class="ti ti-rotate"></i>`;
+        continueBtn.onclick = () => retryCurrentScenario();
+      }
+
+      // Load static learning messages from DB
+      resLearning.innerText = currentScen.learning;
+      resAlignment.innerText = currentScen.alignment;
+    }
+
+    // Retries decision room for current scenario
+    function retryCurrentScenario() {
+      const currentData = gameState.scenariosData[gameState.currentScenarioIdx - 1];
+      currentData.selectedDecision = null;
+      currentData.decisionDone = false;
+      currentData.evaluated = false;
+      currentData.correctSolved = false;
+
+      recalculateGlobalStats();
+      goTo('decision');
+    }
+
+    // Set up Dashboard progress animations and map nodes
+    function setupDashboardScreen() {
+      // Refresh count
+      let solvedCount = 0;
+      gameState.scenariosData.forEach(sc => {
+        if (sc.correctSolved) solvedCount++;
+      });
+
+      document.getElementById('dash-scenarios').innerText = `${solvedCount} / ${gameState.scenariosCount}`;
+      document.getElementById('dash-xp').innerText = `${gameState.xp} XP`;
+      document.getElementById('dash-rank').innerText = gameState.rank;
+
+      // Animate progress bars
+      setTimeout(() => {
+        document.getElementById('bar-fill-research').style.width = `${gameState.competencies.research}%`;
+        document.getElementById('bar-val-research').innerText = `${gameState.competencies.research}%`;
+
+        document.getElementById('bar-fill-budget').style.width = `${gameState.competencies.budget}%`;
+        document.getElementById('bar-val-budget').innerText = `${gameState.competencies.budget}%`;
+
+        document.getElementById('bar-fill-heurs').style.width = `${gameState.competencies.heuristics}%`;
+        document.getElementById('bar-val-heurs').innerText = `${gameState.competencies.heuristics}%`;
+      }, 100);
+
+      // Render Dynamic Quest Map
+      renderQuestMap();
+    }
+
+    // Renders list of levels with lock / complete states
+    function renderQuestMap() {
+      const mapContainer = document.getElementById('dash-quest-map');
+      mapContainer.innerHTML = '';
+
+      scenarios.forEach((sc, idx) => {
+        const itemIdx = idx + 1;
+        const scenState = gameState.scenariosData[idx];
+        const isUnlocked = itemIdx <= gameState.maxUnlockedScenario;
+        const isSolved = scenState.correctSolved;
+        
+        let statusBadge = '';
+        let itemStyle = 'opacity: 0.6;';
+        let actionBtnHTML = '';
+
+        if (isSolved) {
+          statusBadge = '<span class="tag-badge badge-green" style="font-size: 8px;">Resolvido ✅</span>';
+          itemStyle = 'border-color: rgba(16, 185, 129, 0.25);';
+          actionBtnHTML = `<button class="magic-btn btn-sec" style="padding: 6px 12px; font-size: 11px; width: auto; margin-left: auto;" onclick="playScenario(${itemIdx})">Rever <i class="ti ti-eye"></i></button>`;
+        } else if (isUnlocked) {
+          statusBadge = '<span class="tag-badge badge-amber" style="font-size: 8px;">Disponível ⏳</span>';
+          itemStyle = 'border-color: rgba(245, 158, 11, 0.25); opacity: 1;';
+          actionBtnHTML = `<button class="magic-btn" style="padding: 6px 12px; font-size: 11px; width: auto; margin-left: auto;" onclick="playScenario(${itemIdx})">Jogar <i class="ti ti-arrow-right"></i></button>`;
+        } else {
+          statusBadge = '<span class="tag-badge" style="font-size: 8px; background: rgba(255,255,255,0.05); color: var(--color-text-muted);">Bloqueado 🔒</span>';
+          itemStyle = 'opacity: 0.45; cursor: not-allowed;';
+          actionBtnHTML = `<i class="ti ti-lock" style="font-size: 16px; color: var(--color-text-muted); margin-left: auto; padding-right: 12px;"></i>`;
+        }
+
+        const mapItem = document.createElement('div');
+        mapItem.className = 'widget-block';
+        mapItem.style = `${itemStyle} display: flex; align-items: center; gap: 14px; margin-bottom: 0; padding: 12px;`;
+        
+        mapItem.innerHTML = `
+          <div class="persona-avatar" style="width: 32px; height: 32px; font-size: 12px; flex-shrink: 0; background: ${isUnlocked ? 'linear-gradient(135deg, var(--color-purple-primary), var(--color-indigo-primary))' : '#334155'};">
+            ${sc.persona.initials}
+          </div>
+          <div style="display: flex; flex-direction: column;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 12.5px; font-weight: 600; color: #fff;">Cenário ${itemIdx}: ${sc.title}</span>
+              ${statusBadge}
+            </div>
+            <span style="font-size: 11px; color: var(--color-text-secondary); max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              Cliente: ${sc.client}
+            </span>
+          </div>
+          ${actionBtnHTML}
+        `;
+
+        mapContainer.appendChild(mapItem);
+      });
+    }
+
+    // Set selected scenario and start playing
+    function playScenario(scenarioId) {
+      gameState.currentScenarioIdx = scenarioId;
+      goTo('scenario');
+    }
+
+    // Resets state and returns to Home
+    function resetGame() {
+      // Reset state properties
+      gameState.currentScenarioIdx = 1;
+      gameState.maxUnlockedScenario = 1;
+      gameState.budget = 5000;
+      gameState.xp = 0;
+      gameState.rank = 'C-';
+      gameState.scenariosData = [
+        { selectedDecision: null, decisionDone: false, evaluated: false, correctSolved: false },
+        { selectedDecision: null, decisionDone: false, evaluated: false, correctSolved: false },
+        { selectedDecision: null, decisionDone: false, evaluated: false, correctSolved: false }
+      ];
+      gameState.competencies.research = 0;
+      gameState.competencies.budget = 0;
+      gameState.competencies.heuristics = 0;
+
+      feedbackArea.innerHTML = '';
+      actionConfirm.style.display = 'none';
+      actionNext.style.display = 'none';
+
+      goTo('home');
+      onOracleClick();
+    }
+  </script>
+</body>
+</html>
