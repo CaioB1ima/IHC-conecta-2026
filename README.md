@@ -19,6 +19,20 @@ O jogador assume o papel de **UX Designer júnior** e precisa tomar decisões re
 
 O relatório completo do laboratório está disponível na pasta [`/Relatorio`](./Relatorio).
 
+---text
+IHC-conecta-2026/
+│
+├── index.html                  # Jogo completo (single file)
+│                               # HTML + CSS + JS em um único arquivo
+│                               # Deploy via GitHub Pages
+│
+├── Relatório/                  # Pasta de documentação acadêmica
+│   └── (relatório + prompt)    # Relatório do lab + prompt usado no Vibe Coding
+│
+└── README.md                   # Documentação do repositório
+                                # Descrição, link do jogo, cenários,
+                                # integrantes e declaração de autorias
+
 ## 👥 Integrantes
 
 - Caio Barbosa
