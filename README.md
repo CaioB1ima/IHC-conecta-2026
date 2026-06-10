@@ -24,6 +24,10 @@ O relatório completo do laboratório está disponível na pasta [`/Relatorio`](
 - Caio Barbosa
 - Davi Vaz
 
+## Declaraçao de autorias
+- Utilizado Antigravity para tomar forma no planejamento do esboço desejado.
+- Planejamento feito por Caio Barbosa
+- Organização Feita por Davi Vaz
 ---
 
 > Desenvolvido com Vibe Coding · Conecta CEUB 2026 · Professora Kadidja Valéria
