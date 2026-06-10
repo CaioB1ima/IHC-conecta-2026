@@ -19,6 +19,7 @@ O jogador assume o papel de **UX Designer júnior** e precisa tomar decisões re
 
 O relatório completo do laboratório está disponível na pasta [`/Relatorio`](./Relatorio).
 
+## Estrutura
 ```
 IHC-conecta-2026/
 │
