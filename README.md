@@ -1,6 +1,6 @@
 # 🎮 The UX Game — IHC Lab: Challenges & Desafios
 
-Jogo educacional desenvolvido para o **Conecta CEUB 2026** como parte do laboratório prático de IHC (Interação Humano-Computador), no eixo **Q2: Mercado e Formação UX**.
+Jogo educacional desenvolvido para o **Conecta CEUB 2026** como parte do laboratório prático de IHC (Interação Humano-Computador)sendo um protótipo funcional, no eixo **Q2: Mercado e Formação UX**.
 
 O jogador assume o papel de **UX Designer júnior** e precisa tomar decisões reais de pesquisa, acessibilidade e design em projetos do contexto brasileiro — cada escolha tem consequências mensuráveis e um aprendizado de IHC associado.
 
