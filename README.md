@@ -19,7 +19,7 @@ O jogador assume o papel de **UX Designer júnior** e precisa tomar decisões re
 
 O relatório completo do laboratório está disponível na pasta [`/Relatorio`](./Relatorio).
 
----text
+```
 IHC-conecta-2026/
 │
 ├── index.html                  # Jogo completo (single file)
@@ -32,6 +32,7 @@ IHC-conecta-2026/
 └── README.md                   # Documentação do repositório
                                 # Descrição, link do jogo, cenários,
                                 # integrantes e declaração de autorias
+```
 
 ## 👥 Integrantes
 
