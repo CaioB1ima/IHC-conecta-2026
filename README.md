@@ -25,7 +25,7 @@ O relatório completo do laboratório está disponível na pasta [`/Relatorio`](
 - Davi Vaz
 
 ## Declaraçao de autorias
-- Utilizado Antigravity para tomar forma no planejamento do esboço desejado.
+- Utilizado Antigravity para a criação e dar vida ao planejamento e estrutura no PROMPT (anexado na pasta relatório)
 - Planejamento feito por Caio Barbosa
 - Organização Feita por Davi Vaz
 ---
